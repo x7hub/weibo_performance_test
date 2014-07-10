@@ -1,12 +1,20 @@
 #! /bin/sh
 
+#if [ ! -s ~/bin/python ]
+#then
+#    mkdir ~/bin
+#    ln -s /usr/bin/python2 ~/bin/python
+#    ln -s /usr/bin/python2-config ~/bin/python-config
+#fi
+#export PATH=~/bin:$PATH
+
 adb shell dumpsys gfxinfo com.sina.weibo | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' > gfxinfoSum.cvs
 
-if [ ! -s gfxinfoSum.cvs ]
-then
-    echo "empty file"
-    exit
-fi
+#if [ ! -s gfxinfoSum.cvs ]
+#then
+#    echo "empty file"
+#    exit
+#fi
 
 cat << EOF | gnuplot
 set title "gfxinfo"
