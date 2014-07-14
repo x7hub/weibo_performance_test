@@ -7,7 +7,7 @@
 
 usage()
 {
-    echo "Usage: `basename $0` [-f] [-p topic|hot|find|music|home] [-t google|tweet|fb]"
+    echo "Usage: `basename $0` [-f] [-p topic|hot|find|music|home|twitter]"
     exit 1
 }
 
@@ -24,7 +24,7 @@ mkdir -p ${DIR_RESULT}/${DIR_NOW}
 cd ${DIR_RESULT}/${DIR_NOW}
 
 # first arg
-while getopts fp:t: opt
+while getopts fp: opt
 do
     case $opt in
         p)
@@ -49,6 +49,11 @@ do
                     echo 'OPTARG home'
                     scheme='sinaweibo://gotohome'
                     ;;
+                'twitter')
+                    echo "OPTARG twitter"
+                    scheme='twitter://timeline'
+                    target_pkg='com.twitter.android'
+                    ;;
                 \?)
                     echo -e 'invalid arg'
                     exit 1
@@ -57,21 +62,6 @@ do
             ;;
         f)
             sleep_time=0.5
-            ;;
-        t)
-            case $OPTARG in
-                'google')
-                    echo "not available now"
-                    ;;
-                'twitter')
-                    echo "twitter"
-                    scheme='twitter://timeline'
-                    target_pkg='com.twitter.android'
-                    ;;
-                'fb')
-                    echo "not available now"
-                    ;;
-            esac
             ;;
         *)
             echo -e 'invalid arg'
@@ -161,4 +151,4 @@ then
             cp -i gfxinfo.png ../${saveas}.png
             ;;  
     esac   
-fi   
+fi
