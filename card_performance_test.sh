@@ -31,23 +31,23 @@ do
             case $OPTARG in
                 'topic')
                     echo 'OPTARG topic'
-                    scheme='pageinfo?containerid=100808db057fb6820d53fee904474bcbb75b1a'
+                    scheme='sinaweibo://pageinfo?containerid=100808db057fb6820d53fee904474bcbb75b1a'
                     ;;
                 'hot' )
                     echo 'OPTARG hot'
-                    scheme='cardlist?containerid=100803'
+                    scheme='sinaweibo://cardlist?containerid=100803'
                     ;;
                 'find')
                     echo 'OPTARG find'
-                    scheme='cardlist?containerid=1087030002_417'
+                    scheme='sinaweibo://cardlist?containerid=1087030002_417'
                     ;;
                 'music')
                     echo 'OPTARG music'
-                    scheme='cardlist?containerid=10140310001'
+                    scheme='sinaweibo://cardlist?containerid=10140310001'
                     ;;
                 'home')
                     echo 'OPTARG home'
-                    scheme='gotohome'
+                    scheme='sinaweibo://gotohome'
                     ;;
                 \?)
                     echo -e 'invalid arg'
@@ -63,8 +63,10 @@ do
                 'google')
                     echo "not available now"
                     ;;
-                'tweet')
-                    echo "not available now"
+                'twitter')
+                    echo "twitter"
+                    scheme='twitter://timeline'
+                    target_pkg='com.twitter.android'
                     ;;
                 'fb')
                     echo "not available now"
@@ -123,7 +125,7 @@ function run_monkey_script()
     cat << EOF | monkeyrunner
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 device = MonkeyRunner.waitForConnection()
-device.startActivity(uri='sinaweibo://${scheme}')
+device.startActivity(uri='${scheme}')
 MonkeyRunner.sleep(10)
 for i in range(0,3):
     device.drag((216,768),(216,153),0.08,10)
