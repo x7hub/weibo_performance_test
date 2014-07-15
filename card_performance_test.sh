@@ -14,10 +14,11 @@ usage()
 [ $# -eq 0 ] && usage
 
 DIR_NOW=`date +%s` # use as sub dir name
-DIR_RESULT='result'
+DIR_RESULT='result_tmp'
 
 target_pkg='com.sina.weibo'
-sleep_time=1;
+sleep_time=1
+drag_duration=0.05
 
 # store test output
 mkdir -p ${DIR_RESULT}/${DIR_NOW}
@@ -93,7 +94,7 @@ function draw_histogram()
     set style fill solid border -1
     plot "gfxinfoSum.cvs" using 2:xtic(1) title 'Draw', '' using 3 title 'Process', '' using 4 title 'Execute', 16
 EOF
-    ristretto gfxinfo.png   
+    # ristretto gfxinfo.png
 }
 
 # funcion for reading gfxinfo
@@ -104,7 +105,7 @@ function read_gfx_info()
     do
         echo '******* read gfxinfo *******'
         adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
-        sleep `echo 6*${sleep_time}+2 | bc`
+        sleep `echo 6*${sleep_time}+1| bc`
     done
     draw_histogram
 }
@@ -118,17 +119,17 @@ device = MonkeyRunner.waitForConnection()
 device.startActivity(uri='${scheme}')
 MonkeyRunner.sleep(10)
 for i in range(0,3):
-    device.drag((216,768),(216,153),0.08,10)
+    device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,768),(216,153),0.08,10)
+    device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),0.08,10)
+    device.drag((216,153),(216,768),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,768),(216,153),0.08,10)
+    device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),0.08,10)
+    device.drag((216,153),(216,768),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),0.08,10)
+    device.drag((216,153),(216,768),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
 
 EOF
@@ -138,17 +139,17 @@ run_monkey_script &
 sleep 20
 read_gfx_info
 
-if read -n 1 -p "Save ? [Y/n]:"
-then  
-    case $REPLY in  
-        N|n)
-            echo -e "\nexit.\n"  
-            exit
-            ;;
-        *)
-            echo '\n'
-            read -p "Save as :" saveas
-            cp -i gfxinfo.png ../${saveas}.png
-            ;;  
-    esac   
-fi
+#if read -n 1 -p "Save ? [Y/n]:"
+#then  
+#    case $REPLY in  
+#        N|n)
+#            echo -e "\nexit.\n"  
+#            exit
+#            ;;
+#        *)
+#            echo '\n'
+#            read -p "Save as :" saveas
+#            cp -i gfxinfo.png ../${saveas}.png
+#            ;;  
+#    esac   
+#fi
