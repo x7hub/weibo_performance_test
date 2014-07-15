@@ -2,3 +2,4 @@
 *.cvs
 *.png
 result/
+result_tmp/
