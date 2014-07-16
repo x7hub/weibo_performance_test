@@ -1,4 +1,4 @@
-### weibo_performance
+### weibo_performance_test
 
 for sina.
 
