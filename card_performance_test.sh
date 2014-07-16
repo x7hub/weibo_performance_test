@@ -15,10 +15,12 @@ usage()
 
 DIR_NOW=`date +%s` # use as sub dir name
 DIR_RESULT='result_tmp'
+CURRENT_PID=$$
 
 target_pkg='com.sina.weibo'
 sleep_time=1
 drag_duration=0.05
+repeat_times=3
 
 # store test output
 mkdir -p ${DIR_RESULT}/${DIR_NOW}
@@ -100,13 +102,10 @@ EOF
 # funcion for reading gfxinfo
 function read_gfx_info()
 {
+    sleep 3
     # read gfxinfo
-    for i in `seq 3`
-    do
-        echo '******* read gfxinfo *******'
-        adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
-        sleep `echo 6*${sleep_time}+1| bc`
-    done
+    echo '******* read gfxinfo *******'
+    adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
     draw_histogram
 }
 
@@ -114,16 +113,22 @@ function read_gfx_info()
 function run_monkey_script()
 {
     cat << EOF | monkeyrunner
+import os,signal
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 device = MonkeyRunner.waitForConnection()
 device.startActivity(uri='${scheme}')
 MonkeyRunner.sleep(10)
-for i in range(0,3):
+for i in range(0,${repeat_times}):
+    os.kill(${CURRENT_PID},signal.SIGUSR1)
     device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
     device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
     device.drag((216,153),(216,768),${drag_duration},10)
+    MonkeyRunner.sleep(${sleep_time})
+    device.drag((216,153),(216,768),${drag_duration},10)
+    MonkeyRunner.sleep(${sleep_time})
+    device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
     device.drag((216,768),(216,153),${drag_duration},10)
     MonkeyRunner.sleep(${sleep_time})
@@ -136,8 +141,13 @@ EOF
 }
 
 run_monkey_script &
-sleep 20
-read_gfx_info
+
+trap "read_gfx_info" SIGUSR1
+
+for i in `seq ${repeat_times}`
+do
+    wait
+done
 
 #if read -n 1 -p "Save ? [Y/n]:"
 #then  
