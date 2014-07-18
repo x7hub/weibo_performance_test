@@ -24,9 +24,9 @@ function test_one_page()
 function test_one_version()
 {
     test_one_page 'find'
-    test_one_page 'topic'
     test_one_page 'music'
     test_one_page 'home'
+    test_one_page 'topic'
 }
 
 

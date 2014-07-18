@@ -45,7 +45,6 @@ function run_monkey_script()
 import os,signal
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
 device = MonkeyRunner.waitForConnection()
-MonkeyRunner.sleep(10)
 for i in range(0,${repeat_times}):
     os.kill(${CURRENT_PID},signal.SIGUSR1)
     device.drag((216,768),(216,153),${drag_duration},10)
