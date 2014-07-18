@@ -15,9 +15,20 @@ function test_one_page()
     ./card_performance_test.sh -f -p ${target_page}
     cp ${DIR_RESULT_TMP}/*/gfxinfoSum.cvs ${DIR_RESULT}/${DIR_NOW}/${target_page}.cvs
     cp ${DIR_RESULT_TMP}/*/gfxinfo.png ${DIR_RESULT}/${DIR_NOW}/${target_page}.png
+    rm -rf ${DIR_RESULT_TMP}/*
+    ./systrace_test.sh
+    cp ${DIR_RESULT_TMP}/*/trace.html ${DIR_RESULT}/${DIR_NOW}/${target_page}.html
 }
 
-test_one_page 'find'
-test_one_page 'topic'
-test_one_page 'music'
-test_one_page 'home'
+# test one version
+function test_one_version()
+{
+    test_one_page 'find'
+    test_one_page 'topic'
+    test_one_page 'music'
+    test_one_page 'home'
+}
+
+
+test_one_version
+
