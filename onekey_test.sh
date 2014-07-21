@@ -16,7 +16,7 @@ function test_one_page()
     cp ${DIR_RESULT_TMP}/*/gfxinfoSum.cvs ${DIR_RESULT}/${DIR_NOW}/${target_page}.cvs
     cp ${DIR_RESULT_TMP}/*/gfxinfo.png ${DIR_RESULT}/${DIR_NOW}/${target_page}.png
     rm -rf ${DIR_RESULT_TMP}/*
-    ./systrace_test.sh
+    ./systrace_test.sh -f -p ${target_page}
     cp ${DIR_RESULT_TMP}/*/trace.html ${DIR_RESULT}/${DIR_NOW}/${target_page}.html
 }
 
@@ -29,6 +29,8 @@ function test_one_version()
     test_one_page 'topic'
 }
 
+
+trap "exit" SIGINT
 
 test_one_version
 

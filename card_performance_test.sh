@@ -18,6 +18,7 @@ DIR_RESULT='result_tmp'
 CURRENT_PID=$$
 
 target_pkg='com.sina.weibo'
+up_and_down=0
 sleep_time=1
 drag_duration=0.05
 repeat_times=3
@@ -43,6 +44,7 @@ do
                 'find')
                     echo 'OPTARG find'
                     scheme='sinaweibo://cardlist?containerid=1087030002_417'
+                    up_and_down=1
                     ;;
                 'music')
                     echo 'OPTARG music'
@@ -65,6 +67,7 @@ do
             ;;
         f)
             sleep_time=0.5
+            drag_duration=0.01
             ;;
         *)
             echo -e 'invalid arg'
@@ -102,7 +105,8 @@ EOF
 # funcion for reading gfxinfo
 function read_gfx_info()
 {
-    sleep 3
+    adb shell dumpsys gfxinfo ${target_pkg} > /dev/null
+    sleep 6
     # read gfxinfo
     echo '******* read gfxinfo *******'
     adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
@@ -120,22 +124,16 @@ device.startActivity(uri='${scheme}')
 MonkeyRunner.sleep(10)
 for i in range(0,${repeat_times}):
     os.kill(${CURRENT_PID},signal.SIGUSR1)
-    device.drag((216,768),(216,153),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,768),(216,153),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,768),(216,153),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,768),(216,153),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
-    device.drag((216,153),(216,768),${drag_duration},10)
-    MonkeyRunner.sleep(${sleep_time})
+    if ${up_and_down} == 0:
+        for i in range(0,15):
+            device.drag((216,768),(216,153),${drag_duration},10)
+            MonkeyRunner.sleep(${sleep_time})
+    else:
+        for i in range(0,8):
+            device.drag((216,768),(216,153),${drag_duration},10)
+            MonkeyRunner.sleep(${sleep_time})
+            device.drag((216,153),(216,768),${drag_duration},10)
+            MonkeyRunner.sleep(${sleep_time})
 
 EOF
 }
@@ -143,23 +141,9 @@ EOF
 run_monkey_script &
 
 trap "read_gfx_info" SIGUSR1
+trap "exit" SIGINT
 
 for i in `seq ${repeat_times}`
 do
     wait
 done
-
-#if read -n 1 -p "Save ? [Y/n]:"
-#then  
-#    case $REPLY in  
-#        N|n)
-#            echo -e "\nexit.\n"  
-#            exit
-#            ;;
-#        *)
-#            echo '\n'
-#            read -p "Save as :" saveas
-#            cp -i gfxinfo.png ../${saveas}.png
-#            ;;  
-#    esac   
-#fi
