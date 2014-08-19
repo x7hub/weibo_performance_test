@@ -110,7 +110,14 @@ function read_gfx_info()
     # read gfxinfo
     echo '******* read gfxinfo *******'
     adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
-    draw_histogram
+
+    # draw plot
+    if hash gnuplot 2>/dev/null; then
+        draw_histogram
+    fi
+
+    # count
+    awk 'BEGIN{largest = 0; count = 0; count_16 = 0; count_30 = 0; count_100 = 0} {sum = $2 + $3 +$4; count++; if(sum>16){count_16++} if(sum>30){count_30++} if(sum>100){count_100++} if(sum>largest){largest = sum}} END{print "largest: " largest "\nlarger than 16 count: " count_16 " \tratio: " count_16/count "\nlarger than 30 count: " count_30 " \tratio: " count_30/count "\nlarger than 100 count: " count_100 " \tratio: " count_100/count "\n"}' gfxinfoSum.cvs > gfxinfoCount.txt
 }
 
 # start activity, drag down and up
@@ -126,13 +133,13 @@ for i in range(0,${repeat_times}):
     os.kill(${CURRENT_PID},signal.SIGUSR1)
     if ${up_and_down} == 0:
         for i in range(0,15):
-            device.drag((216,768),(216,153),${drag_duration},10)
+            device.drag((216,768),(216,153),${drag_duration},1)
             MonkeyRunner.sleep(${sleep_time})
     else:
         for i in range(0,8):
-            device.drag((216,768),(216,153),${drag_duration},10)
+            device.drag((216,768),(216,153),${drag_duration},1)
             MonkeyRunner.sleep(${sleep_time})
-            device.drag((216,153),(216,768),${drag_duration},10)
+            device.drag((216,153),(216,768),${drag_duration},1)
             MonkeyRunner.sleep(${sleep_time})
 
 EOF
