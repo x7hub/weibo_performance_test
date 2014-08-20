@@ -109,7 +109,7 @@ function read_gfx_info()
     sleep 6
     # read gfxinfo
     echo '******* read gfxinfo *******'
-    adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep [0-9] | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
+    adb shell dumpsys gfxinfo ${target_pkg} | sed -n '/Draw\tProcess\tExecute/,/View hierarchy:/p'| tee gfxinfo${i}.cvs | grep "[0-9]*\.[0-9][0-9]" | awk '{printf("%02d %s\n", NR, $0)}' >> gfxinfoSum.cvs
 
     # draw plot
     if hash gnuplot 2>/dev/null; then
@@ -117,7 +117,7 @@ function read_gfx_info()
     fi
 
     # count
-    awk 'BEGIN{largest = 0; count = 0; count_16 = 0; count_30 = 0; count_100 = 0} {sum = $2 + $3 +$4; count++; if(sum>16){count_16++} if(sum>30){count_30++} if(sum>100){count_100++} if(sum>largest){largest = sum}} END{print "largest: " largest "\nlarger than 16 count: " count_16 " \tratio: " count_16/count "\nlarger than 30 count: " count_30 " \tratio: " count_30/count "\nlarger than 100 count: " count_100 " \tratio: " count_100/count "\n"}' gfxinfoSum.cvs > gfxinfoCount.txt
+    awk 'BEGIN{largest = 0; sum = 0; count = 0; count_16 = 0; count_30 = 0; count_100 = 0} {line = $2 + $3 +$4; sum += line;  count++; if(line>16){count_16++} if(line>30){count_30++} if(line>100){count_100++} if(line>largest){largest = line}} END{print "avg: " sum/count "\nlargest: " largest "\ntotal count: " count "\nlarger than 16 count: " count_16 " \tratio: " count_16/count "\nlarger than 30 count: " count_30 " \tratio: " count_30/count "\nlarger than 100 count: " count_100 " \tratio: " count_100/count "\n"}' gfxinfoSum.cvs > gfxinfoCount.txt
 }
 
 # start activity, drag down and up
