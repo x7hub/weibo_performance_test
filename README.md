@@ -1,22 +1,32 @@
-### weibo_performance_test
+## weibo_performance_test
 
-for sina.
+for sina weibo.
+
+## python
+
+python版本的测试脚本
 
 
-onekey_test.sh
+
+## shell
+
+shell版本的测试脚本
+
+
+#### onekey_test.sh
 
 - 直接运行的入口
 - 测试4个页面的数据，保存到result目录下，以时间戳为子目录
 
 
-card_performance_test.sh [-f] [-p topic|hot|find|music|home|twitter]
+#### card_performance_test.sh [-f] [-p topic|hot|find|music|home|twitter]
 
 - 被onekey_test.sh调用，测试单个页面gfxinfo
 - -f 表示快速翻页
 - -p 指定要测试的页面
 - *画图用到软件`gnuplot`*
 
-systrace_test.sh
+#### systrace_test.sh
 
 - 被onekey_test.sh调用，测试单个页面systrace
 - *需要修改`DIR_SYSTRACE`为sdk中systrace脚本的位置*
@@ -32,7 +42,11 @@ fi
 export PATH=~/bin:$PATH
 ```
 
-create_feed_data_from_topic.php
+## test_data
+
+用于对比测试的json数据
+
+#### create_feed_data_from_topic.php
 
 - php脚本，将话题的数据改为首页feed流的格式
 - 原数据为`test_data/feeds.json`和`test_data/huati.json`，输出到标准输出
