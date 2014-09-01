@@ -56,4 +56,5 @@ docs/_build/
 # test result file, and tmp file used by shell script
 #
 shell/result/
-shellresult_tmp/
+shell/result_tmp/
+python/result/

@@ -1,4 +1,4 @@
-#! /bin/env python2
+#! /bin/env python
 # GfxinfoMonitor.py
 
 import subprocess
@@ -7,7 +7,7 @@ import sched
 import re
 import signal
 import sys
-
+import thread
 
 class GfxinfoMonitor(object):
     """ monitor for gfxinfo of Android device
@@ -17,36 +17,54 @@ class GfxinfoMonitor(object):
         self.timer = 1 # interval for executing adb command
         self.s = sched.scheduler(time.time,time.sleep) # init scheduler
         self.pkgname = pkgname
-        self.interrupt = False
+        self.interrupted = False
         self.result = {} # dict for restoring result
 
     def start(self):
         """ start to record gfxinfo every $timer seconds
         """
-        signal.signal(signal.SIGINT, self.__signal_handler)
-        self.__waitForDevice()
-        self.__enableGfxProfile()
-        self.s.enter(self.timer, 0, self.__performOnce, ())
+        self._waitForDevice()
+        self._enableGfxProfile()
+        self._clearOldData()
+        self.s.enter(self.timer, 0, self._performOnce, ())
+        print "Monitoring ..."
         self.s.run()
+        print "Exiting ..."
 
-    def getResult(self, interrupt = False):
+    def interrupt(self):
         print "Finish monitoring."
-        self.interrupt = interrupt
+        self.interrupted = True
+
+    def getResult(self):
         return self.result
 
-    def __waitForDevice(self):
+    def getResultInSum(self):
+        ret = {}
+        for k,v in self.result.iteritems():
+            ret[k] = []
+            for item in v:
+                splitedline = item.split('\t')
+                sumofline = float(splitedline[0]) + float(splitedline[1]) + float(splitedline[2])
+                ret[k].append(round(sumofline, 2))
+        return ret
+
+    def _waitForDevice(self):
         print "Waiting for device ..."
         p = subprocess.Popen('./adb wait-for-device', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
         print "Device connected."
 
-    def __enableGfxProfile(self):
+    def _enableGfxProfile(self):
         p = subprocess.Popen('./adb shell setprop debug.hwui.profile true', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         p.wait()
 
-    def __performOnce(self):
-        if self.interrupt == False :
-            self.s.enter(self.timer, 0, self.__performOnce, ())
+    def _clearOldData(self):
+        p = subprocess.Popen('./adb shell dumpsys gfxinfo %s' % self.pkgname, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p.wait()
+
+    def _performOnce(self):
+        if not self.interrupted:
+            self.s.enter(self.timer, 0, self._performOnce, ())
             p = subprocess.Popen('./adb shell dumpsys gfxinfo %s' % self.pkgname, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             datastart = False
             for line in p.stdout.readlines():
@@ -61,16 +79,13 @@ class GfxinfoMonitor(object):
                 elif datastart and not striped.startswith(r'Draw') and striped: # data get
                     self.result[activity].append(striped)
 
-    def __signal_handler(self, signum, frame):
-        if signum == signal.SIGINT :
-            print "\nSIGINT catched, finish monitoring."
-            self.interrupt = True
-
-
 if __name__ == '__main__':
     """ test function
     """
     monitor = GfxinfoMonitor(pkgname = "com.sina.weibo")
-    monitor.start()
-    res = monitor.getResult()
-    print res
+    # monitor.start()
+    thread.start_new_thread(monitor.start, ())
+    time.sleep(3)
+    monitor.interrupt()
+    time.sleep(1)
+    print monitor.getResultInSum()
