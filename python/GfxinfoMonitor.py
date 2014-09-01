@@ -118,7 +118,6 @@ class GfxinfoMonitor(object):
         p.wait()
 
     def _performOnce(self):
-        if not self.interrupted:
             self.s.enter(self.timer, 0, self._performOnce, ())
             cmd = '%s shell dumpsys gfxinfo %s' % (self.adbPath, self.pkgname)
             p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -134,6 +133,8 @@ class GfxinfoMonitor(object):
                         self.result[activity] = []
                 elif striped.startswith(r'View hierarchy:'): # end
                     break
+                elif striped.startswith('Toast'): # fix error caused by Toast info
+                    datastart = False
                 elif datastart and not striped.startswith(r'Draw') and striped: # data get
                     self.result[activity].append(striped)
 
