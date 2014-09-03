@@ -48,8 +48,15 @@ class GfxinfoMonitor(object):
             for item in v:
                 splitedline = item.split('\t')
                 # print splitedline
-                sumofline = float(splitedline[0]) + float(splitedline[1]) + float(splitedline[2])
-                ret[k].append(round(sumofline, 2))
+                try:
+                    sumofline = float(splitedline[0]) + float(splitedline[1]) + float(splitedline[2])
+                    ret[k].append(round(sumofline, 2))
+                except:
+                    print '-' * 50
+                    print 'Exception when parsing splitedline into float'
+                    print item
+                    print '-' * 50
+                    print '\n'
         return ret
 
     def _getAdbPath(self):
@@ -124,8 +131,8 @@ class GfxinfoMonitor(object):
             p.wait()
             datastart = False
             for line in p.stdout.readlines():
-                # print line
                 striped = line.strip()
+                # print line
                 if striped.startswith(self.pkgname): # start
                     datastart = True
                     activity = re.split(r'/', striped)[1]
@@ -133,9 +140,9 @@ class GfxinfoMonitor(object):
                         self.result[activity] = []
                 elif striped.startswith(r'View hierarchy:'): # end
                     break
-                elif striped.startswith('Toast'): # fix error caused by Toast info
+                elif not striped: # fix error caused by Toast info
                     datastart = False
-                elif datastart and not striped.startswith(r'Draw') and striped: # data get
+                elif datastart and striped and striped[0].isdigit(): # data get
                     self.result[activity].append(striped)
 
 if __name__ == '__main__':

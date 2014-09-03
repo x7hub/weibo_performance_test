@@ -38,22 +38,32 @@ def _readTargetPkg():
     else:
         return pkg
 
+def _dumpRaw(raw):
+    ret = ''
+    for k,v in raw.iteritems():
+        if v:
+            ret = ret + "%s\n" % k
+            for item in v:
+                ret = ret + '%s\n' % item
+            ret = ret + '\n'
+    return ret
+
 def _dumpStat(stat):
     ret = ''
     for k,v in stat.iteritems():
-        ret = (ret
-                + "%s\n" % k
-                + "count: %d\n" % v['count']
-                + "avg: %0.4f\n" % v['avg']
-                + "above_16: %d\tratio: %0.4f\n" % (v['above16'], v['above16_ratio'])
-                + "above_30: %d\tratio: %0.4f\n" % (v['above30'], v['above30_ratio'])
-                + "above_50: %d\tratio: %0.4f\n" % (v['above50'], v['above50_ratio'])
-                + "above_80: %d\tratio: %0.4f\n" % (v['above80'], v['above80_ratio'])
-                + "above_100: %d\tratio: %0.4f\n" % (v['above100'], v['above100_ratio'])
-                + "\n"
-                )
+        if v:
+            ret = (ret
+                    + "%s\n" % k
+                    + "count: %d\n" % v['count']
+                    + "avg: %0.4f\n" % v['avg']
+                    + "above_16: %d\tratio: %0.4f\n" % (v['above16'], v['above16_ratio'])
+                    + "above_30: %d\tratio: %0.4f\n" % (v['above30'], v['above30_ratio'])
+                    + "above_50: %d\tratio: %0.4f\n" % (v['above50'], v['above50_ratio'])
+                    + "above_80: %d\tratio: %0.4f\n" % (v['above80'], v['above80_ratio'])
+                    + "above_100: %d\tratio: %0.4f\n" % (v['above100'], v['above100_ratio'])
+                    + "\n"
+                    )
     return ret
-
 
 if __name__ == "__main__":
     print "Starting ..."
@@ -66,19 +76,18 @@ if __name__ == "__main__":
     getch = _find_getch()
     getch() # press anykey to interrupt
     monitor.interrupt()
-    result = monitor.getResultInSum() # get result dict
-    # print result
-
+    raw = monitor.getResult() # get result dict
     if not os.path.exists("result"):
         os.mkdir("result")
-    filename_cvs = "result/rawdata_%d.cvs" % round(time.time())
-    fileobj_cvs = open(filename_cvs, "wb") # open output target file
+    filename_raw = "result/rawdata_%d.cvs" % round(time.time())
+    fileobj_raw = open(filename_raw, "wb") # open output target file
+    rawdump = _dumpRaw(raw)
+    fileobj_raw.write(rawdump) # dump raw data
+    fileobj_raw.close()
 
+    result = monitor.getResultInSum() # get result dict
     stat = {} # statistics analysed from the result
-
-    for k,v in result.iteritems(): # dump raw data
-        fileobj_cvs.write(k)
-        fileobj_cvs.write('\n')
+    for k,v in result.iteritems(): # caculate stat
         stat[k] = {}
         count = 0
         summary = 0
@@ -88,8 +97,6 @@ if __name__ == "__main__":
         above80 = 0
         above100 = 0
         for item in v:
-            fileobj_cvs.write(str(item))
-            fileobj_cvs.write('\n')
             count += 1
             summary += item
             if item > 16:
@@ -102,7 +109,6 @@ if __name__ == "__main__":
                 above80 += 1
             if item > 100:
                 above100 += 1
-        fileobj_cvs.write('\n')
         if count == 0:
             continue
         stat[k]['count'] = count
@@ -117,15 +123,13 @@ if __name__ == "__main__":
         stat[k]['above80_ratio'] = round(float(above80) / count, 4)
         stat[k]['above100'] = above100
         stat[k]['above100_ratio'] = round(float(above100) /count, 4)
-    fileobj_cvs.write('\n')
-    fileobj_cvs.close()
 
-    filename_json = "result/stat_%d.cvs" % round(time.time())
-    fileobj_json = open(filename_json, "wb") # open output target file
+    filename_stat = "result/stat_%d.cvs" % round(time.time())
+    fileobj_stat = open(filename_stat, "wb") # open output target file
     statdump = _dumpStat(stat)
     print '\n', statdump
-    fileobj_json.write(statdump) # dump statistcs
-    fileobj_json.write('\n')
-    fileobj_json.close()
+    fileobj_stat.write(statdump) # dump statistcs
+    fileobj_stat.write('\n')
+    fileobj_stat.close()
 
     time.sleep(1) # wait child thread to exit
